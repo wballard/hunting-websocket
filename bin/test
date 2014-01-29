@@ -1,0 +1,43 @@
+#!/usr/bin/env node
+
+var HuntingWebSocket = require('../index');
+
+var socket = new HuntingWebSocket([
+  'ws://localhost:8000',
+  'ws://localhost:8001']);
+
+socket.onopen = function(evt) {
+  //called on the first open, and only once
+  console.log("We are so in");
+}
+
+socket.onserver = function(evt) {
+  //called any time the socket server has changed, either from a
+  //failover or a reconnect
+  console.log("Turns out", evt.server, "is listening");
+}
+
+socket.onerror = function(err) {
+  //badness detected!
+  console.log(err);
+}
+
+socket.onmessage = function(evt) {
+  //message in evt.data
+  console.log(evt.data);
+}
+
+socket.onclose = function(evt) {
+  //by-bye, called on if you really call .close()
+  console.log("It's over. Really");
+  process.exit(0);
+}
+
+var i = 0;
+setInterval(function(){
+  socket.send(i++ + '');
+}, 1000);
+
+process.on('SIGINT', function(){
+  socket.close();
+})
