@@ -24,7 +24,12 @@ socket.onerror = function(err) {
 
 socket.onmessage = function(evt) {
   //message in evt.data
-  console.log(evt.data);
+  if (typeof(evt.data) != 'undefined'){
+    console.log("message: ",evt.data);
+  } else {
+    console.log("message: ",evt);
+  }
+
 }
 
 socket.onclose = function(evt) {
