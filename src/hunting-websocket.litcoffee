@@ -28,17 +28,18 @@ that is the only time the socket has activity to 'know' it switched servers.
         @lastSocket = undefined
         @sockets = []
         for url in @urls
-          @sockets.push new ReconnectingWebSocket(url)
+          socket = new ReconnectingWebSocket(url)
+          @sockets.push socket
 
 Event relay. Maybe I should call it *baton* not *evt*. Anyhow, the
 `ReconnectingWebSocket` handles the underlying `WebSocket` so we don't need
 to hookup each time we reopen.
 
-          @sockets.onmessage = (evt) =>
+          socket.onmessage = (evt) =>
             @onmessage evt
-          @sockets.onerror = (err) =>
+          socket.onerror = (err) =>
             @onerror err
-          @sockets.onopen = (evt) =>
+          socket.onopen = (evt) =>
             if not openAtAll
               openAtAll = true
               @onopen evt
