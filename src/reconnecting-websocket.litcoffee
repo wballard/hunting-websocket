@@ -19,18 +19,7 @@ A reference to the contained WebSocket in case you need to poke under the hood.
 
 This may work on the client or the server. Because we love you.
 
-    if WebSocket?
-      WebSocket.prototype.on = (name, handler) ->
-        if name is 'open'
-          @onopen = handler
-        else if name is 'close'
-          @onclose = handler
-        else if name is 'message'
-          @onmessage = handler
-        else if name is 'error'
-          @onmessage = handler
-    else
-      WebSocket = require('ws')
+    WebSocket = WebSocket or require('ws')
 
     class ReconnectingWebSocket
       constructor: (@url) ->
@@ -43,28 +32,28 @@ The all powerful connect function, sets up events and error handling.
 
       connect: () =>
         @ws = new WebSocket(@url)
-        @ws.on 'open', (event) =>
+        @ws.onopen  =(event) =>
           @readyState = WebSocket.OPEN
           if @connectionCount++
             @onreconnect(event)
           else
             @onopen(event)
-        @ws.on 'close', (event) =>
+        @ws.onclose = (event) =>
           if @forceclose
             @readyState = WebSocket.CLOSED
             @onclose(event)
           else
             @readyState = WebSocket.CONNECTING
             @connect()
-        @ws.on 'message', (event) =>
+        @ws.onmessage = (event) =>
           @onmessage(event)
-        @ws.on 'error', (event) =>
+        @ws.onerror = (event) =>
           @onerror(event)
 
       send: (data) ->
         try
           @ws.send(data)
-        finally
+        catch
           @connect()
 
       close: ->

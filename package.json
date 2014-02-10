@@ -1,6 +1,6 @@
 {
   "name": "hunting-websocket",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "WebSocket with automatic reconnection and client side failover.",
   "main": "index.js",
   "author": "Will Ballard and Friends",
