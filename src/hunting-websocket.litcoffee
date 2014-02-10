@@ -43,6 +43,8 @@ to hookup each time we reopen.
             if not openAtAll
               openAtAll = true
               @onopen evt
+          socket.onreconnect = (evt) =>
+            @onreconnect evt
 
         @forceclose = false
 
@@ -80,6 +82,7 @@ Empty shims for the event handlers. These are just here for discovery via
 the debugger.
 
       onopen: (event) ->
+      onreconnect: (event) ->
       onclose: (event) ->
       onserver: (event) ->
       onmessage: (event) ->
