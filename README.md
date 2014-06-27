@@ -22,7 +22,7 @@ waffler 8001 &
 ```
 
 ```
-var HuntingWebSocket = require('hunting-webocket');
+var HuntingWebSocket = require('hunting-websocket');
 var socket = new HuntingWebSocket([
   'ws://localhost:8000',
   'ws://localhost:8001']);
