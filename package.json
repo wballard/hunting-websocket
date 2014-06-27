@@ -1,12 +1,15 @@
 {
   "name": "hunting-websocket",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "WebSocket with automatic reconnection and client side failover.",
   "main": "index.js",
   "author": "Will Ballard and Friends",
   "license": "ISC",
   "dependencies": {
-    "coffee-script": "~1.7.0",
+    "coffee-script": "~1.7.1",
+    "coffeeify": "^0.6.0",
     "ws": "~0.4.31"
-  }
+  },
+  "browser": "./src/hunting-websocket.litcoffee",
+  "browserify": { "transform": [ "coffeeify" ] }
 }
