@@ -8,8 +8,7 @@
   "repository": "https://github.com/wballard/hunting-websocket.git",
   "bugs": "https://github.com/wballard/hunting-websocket/issues",
   "dependencies": {
-    "coffee-script": "~1.7.1",
-    "ws": "~0.4.31"
+    "coffee-script": "~1.7.1"
   },
   "browser": "./index.js",
   "devDependencies": {

@@ -13,52 +13,59 @@ A reference to the contained WebSocket in case you need to poke under the hood.
 
 This may work on the client or the server. Because we love you.
 
-    WebSocket = WebSocket or require('ws')
+    WebSocket = window.WebSocket
     background = window.requestAnimationFrame or setTimeout
 
     class ReconnectingWebSocket
       constructor: (@url) ->
+        console.log "Hello #{@url}"
         @couldBeBusted = true
         @forceclose = false
-        @readyState = WebSocket.CONNECTING
+        @allowReconnect = false
         @connect()
+        @reconnect()
 
 This is the connection retry system. Keep trying at every opportunity.
 
-        reconnect = =>
-          background =>
-            if @couldBeBusted and not @forceclose and not @readyState is WebSocket.CONNECTING
-              @connect()
-            reconnect()
-        reconnect()
+      reconnect: () ->
+        background =>
+          @reconnect()
+          if not @forceclose
+            if @readyState isnt WebSocket.OPEN
+              if Date.now() > @reconnectAfter
+                @connect()
 
 The all powerful connect function, sets up events and error handling.
 
-      connect: () =>
-        @couldBeBusted = false
+      connect: () ->
+        @reconnectAfter = Date.now() + 200
+        @readyState = WebSocket.CONNECTING
         @ws = new WebSocket(@url)
         @ws.onopen  = (event) =>
           @readyState = WebSocket.OPEN
+          @reconnectAfter = Date.now() * 2
           @onopen(event)
         @ws.onclose = (event) =>
+          @reconnectAfter = 0
           if @forceclose
             @readyState = WebSocket.CLOSED
             @onclose(event)
           else
             @readyState = WebSocket.CONNECTING
-            @connect()
         @ws.onmessage = (event) =>
           @onmessage(event)
         @ws.onerror = (event) =>
+          @reconnectAfter = 0
           @onerror(event)
 
 Sending has an odd uncatchable exception, so use marker flags
 to know that we did or did not get past a send.
 
       send: (data) ->
-        @couldBeBusted = true
+        state = @readyState
+        @readyState = WebSocket.CLOSING
         @ws.send(data)
-        @couldBeBusted = false
+        @readyState = state
 
       close: ->
         @forceclose = true

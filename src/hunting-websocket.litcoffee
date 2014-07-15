@@ -20,7 +20,7 @@ This is fired when the active server changes, this will be after a `send` as
 that is the only time the socket has activity to 'know' it switched servers.
 
     ReconnectingWebSocket = require('./reconnecting-websocket.litcoffee')
-    WebSocket = WebSocket or require('ws')
+    WebSocket = window.WebSocket
     background = window.requestAnimationFrame or setTimeout
 
 
@@ -49,8 +49,6 @@ to hookup each time we reopen.
             if not openAtAll
               openAtAll = true
               @onopen evt
-          socket.onreconnect = (evt) =>
-            @onreconnect evt
 
         @forceclose = false
 
