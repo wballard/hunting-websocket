@@ -31,12 +31,6 @@ socket.onopen = function(evt) {
   //called on the first open, and only once
 }
 
-socket.onserver = function(evt) {
-  //called any time the socket server has changed, either from a
-  //failover or a reconnect
-  //evt.server
-}
-
 socket.onerror = function(err) {
   //badness detected!
 }
@@ -58,4 +52,4 @@ socket.close()
 
 #Browserify!
 This package is set up to use with browserify from `npm`, though it is
-fundamentally designed to be client side.
+fundamentally designed to be client side. Meaning, it only works client side.
