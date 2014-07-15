@@ -8,36 +8,38 @@ ws = new ReconnectingWebSocket('ws://...');
 ```
 
 #Events
-##onreconnect(event)
-This callback is fired when the socket reconnects. This is separated from the
-`onconnect(event)` callback so that you can have different behavior on the
-first time connection from subsequent connections.
-##onsend(event)
-Fired after a message has gone out the socket.
 ##ws
 A reference to the contained WebSocket in case you need to poke under the hood.
 
 This may work on the client or the server. Because we love you.
 
     WebSocket = WebSocket or require('ws')
+    background = window.requestAnimationFrame or setTimeout
 
     class ReconnectingWebSocket
       constructor: (@url) ->
+        @couldBeBusted = true
         @forceclose = false
         @readyState = WebSocket.CONNECTING
-        @connectionCount = 0
         @connect()
+
+This is the connection retry system. Keep trying at every opportunity.
+
+        reconnect = =>
+          background =>
+            if @couldBeBusted and not @forceclose and not @readyState is WebSocket.CONNECTING
+              @connect()
+            reconnect()
+        reconnect()
 
 The all powerful connect function, sets up events and error handling.
 
       connect: () =>
+        @couldBeBusted = false
         @ws = new WebSocket(@url)
-        @ws.onopen  =(event) =>
+        @ws.onopen  = (event) =>
           @readyState = WebSocket.OPEN
-          if @connectionCount++
-            @onreconnect(event)
-          else
-            @onopen(event)
+          @onopen(event)
         @ws.onclose = (event) =>
           if @forceclose
             @readyState = WebSocket.CLOSED
@@ -50,11 +52,13 @@ The all powerful connect function, sets up events and error handling.
         @ws.onerror = (event) =>
           @onerror(event)
 
+Sending has an odd uncatchable exception, so use marker flags
+to know that we did or did not get past a send.
+
       send: (data) ->
-        try
-          @ws.send(data)
-        catch
-          @connect()
+        @couldBeBusted = true
+        @ws.send(data)
+        @couldBeBusted = false
 
       close: ->
         @forceclose = true
@@ -65,10 +69,8 @@ the debugger.
 
       onopen: (event) ->
       onclose: (event) ->
-      onreconnect: (event) ->
       onmessage: (event) ->
       onerror: (event) ->
-      onsend: (event) ->
 
 Publish this object for browserify.
 

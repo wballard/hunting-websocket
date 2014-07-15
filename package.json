@@ -9,9 +9,13 @@
   "bugs": "https://github.com/wballard/hunting-websocket/issues",
   "dependencies": {
     "coffee-script": "~1.7.1",
-    "coffeeify": "^0.6.0",
     "ws": "~0.4.31"
   },
-  "browser": "./src/hunting-websocket.litcoffee",
-  "browserify": { "transform": [ "coffeeify" ] }
+  "browser": "./index.js",
+  "devDependencies": {
+    "polymer-build": "0.0.14"
+  },
+  "scripts": {
+    "test": "polymer-build watch . src/ build/"
+  }
 }

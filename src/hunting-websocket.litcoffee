@@ -21,12 +21,18 @@ that is the only time the socket has activity to 'know' it switched servers.
 
     ReconnectingWebSocket = require('./reconnecting-websocket.litcoffee')
     WebSocket = WebSocket or require('ws')
+    background = window.requestAnimationFrame or setTimeout
+
 
     class HuntingWebsocket
       constructor: (@urls) ->
         openAtAll = false
         @lastSocket = undefined
         @sockets = []
+        @messageQueue = []
+
+All the urls are reconnecting sockets, these will connect themselves.
+
         for url in @urls
           socket = new ReconnectingWebSocket(url)
           @sockets.push socket
@@ -48,28 +54,43 @@ to hookup each time we reopen.
 
         @forceclose = false
 
-Send, hunting through every socket until one goes.
+Here is the magic, in the background we try very hard to send message
+out to the connected servers, and only take a message off the queue if
+at least the client side of the socket thinks the deed is done.
+
+        sendloop = =>
+
+Do this first, on purpose. Our buddy `send` below will throw an
+un-catch-able exception, so there wouldn't be that much opportunity
+toward the end of this function.
+
+          background sendloop
+          if @messageQueue.length
+
+This is a very simple form of sticky preference for the last socket that worked.
+And if not treat the array of sockets as a ring buffer.
+
+            if @lastSocket
+              trySocket = @lastSocket
+              @lastSocket = null
+            else
+              trySocket = @sockets.pop()
+              @sockets.unshift trySocket
+
+            if trySocket.readyState is WebSocket.OPEN
+              data = @messageQueue[@messageQueue.length-1]
+              trySocket.send(data)
+              @lastSocket = trySocket
+              @messageQueue.pop()
+
+Start pumping messages.
+
+        background sendloop
+
+Sending just queues up a message to go out to the server.
 
       send: (data) ->
-        trySockets = @sockets.slice(0)
-
-This is a very simple form of stick preference for the last socket that worked.
-
-        if @lastSocket
-          trySockets.unshift @lastSocket
-
-        for socket in trySockets
-          try
-            if socket.readyState is WebSocket.OPEN
-              socket.send(data)
-              if socket.url isnt @lastSocket?.url
-                @lastSocket = socket
-                @onserver server: socket.url
-              return
-            else
-              socket.connect()
-          catch err
-            @onerror(err)
+        @messageQueue.unshift data
 
 Close all the sockets.
 
@@ -82,9 +103,7 @@ Empty shims for the event handlers. These are just here for discovery via
 the debugger.
 
       onopen: (event) ->
-      onreconnect: (event) ->
       onclose: (event) ->
-      onserver: (event) ->
       onmessage: (event) ->
       onerror: (event) ->
 
